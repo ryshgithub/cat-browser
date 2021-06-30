@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card } from 'react-bootstrap';
 import { CatAPI } from '../../apis/catAPI';
+import { ErrorAlert } from '../../components/ErrorAlert';
 import { CatImageDetails, CatImageDetailsPageProps } from './interface';
 
 /**
@@ -9,12 +10,13 @@ import { CatImageDetails, CatImageDetailsPageProps } from './interface';
  */
 export const CatImageDetailsPage: React.FC<CatImageDetailsPageProps> = ({ match, history }) => {
     let renderUI: React.ReactNode;
-
     const [catImageDetails, setCarImageDetails] = useState<CatImageDetails | null>(null);
+    const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
         CatAPI.getCatImageDetails(match.params.catImageId)
-            .then(data => setCarImageDetails(data));
+            .then(data => setCarImageDetails(data))
+            .catch(() => setHasError(true));
     },[])
 
     if (!catImageDetails) {
@@ -43,9 +45,18 @@ export const CatImageDetailsPage: React.FC<CatImageDetailsPageProps> = ({ match,
         );
     }
 
+    const handleOnCloseAlert = () => {
+        setHasError(false);
+    }
+
     return (
         <div className="CatImageDetailsPage container">
             {renderUI}
+            <ErrorAlert
+                onClose={handleOnCloseAlert}
+                show={hasError}
+                errorMessage="Apologies but we could not load this cat at this time! Miau!"
+            />
         </div>
     )
 }

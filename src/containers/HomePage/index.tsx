@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Row, Col, Button } from 'react-bootstrap';
+import { Form, Row, Col, Button, Alert } from 'react-bootstrap';
 import { CatAPI } from '../../apis/catAPI';
 import { CatImagesContainer } from '../../components/CatImagesContainer';
+import { ErrorAlert } from '../../components/ErrorAlert';
 import { getNewCatImagesFromNewResults } from '../../utils/catImagesUtils';
 import { parseURLQueryParamsToObj } from '../../utils/helper';
 import { DEFAULT_BREED_OPTION } from './constant';
@@ -15,6 +16,7 @@ export const HomePage: React.FC<HomePageProps> = ({ history, location }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [catImageList, setCatImageList] = useState<CatImageList>([]);
     const [allCatImagesLoaded, setAllCatImagesLoaded] = useState(false);
+    const [hasError, setHasError] = useState(false);
 
     const hasCatImageList = !!catImageList.length;
     const loadMoreButtonText = isLoading ? 'Loading cats...' : 'Load More';
@@ -31,7 +33,7 @@ export const HomePage: React.FC<HomePageProps> = ({ history, location }) => {
                 } else {
                     setIsLoading(false)
                 }
-            })
+            }).catch(() => setHasError(true))
     }, []);
 
     useEffect(() => {
@@ -47,6 +49,7 @@ export const HomePage: React.FC<HomePageProps> = ({ history, location }) => {
                         setAllCatImagesLoaded(true)
                     }
                 })
+                .catch(() => setHasError(true))
                 .finally(() => setIsLoading(false));
         }
     }, [selectedBreedId, currentPage]);
@@ -67,6 +70,10 @@ export const HomePage: React.FC<HomePageProps> = ({ history, location }) => {
         setCurrentPage(currentPage + 1);
     }
 
+    const handleOnCloseAlert = () => {
+        setHasError(false);
+    }
+
     return (
         <div className="homepage container">
             <Row>
@@ -81,13 +88,18 @@ export const HomePage: React.FC<HomePageProps> = ({ history, location }) => {
                 </Col>
             </Row>
             <Row>
-                <CatImagesContainer hasCatImageList={isLoading || hasCatImageList} catImageList={catImageList}  />
+                <CatImagesContainer hasCatImageList={isLoading || hasCatImageList} catImageList={catImageList} />
             </Row>
             {!allCatImagesLoaded && <Row>
                 <Col className="col-12">
                     <Button onClick={handleLoadMoreOnClick} disabled={isLoading || !hasCatImageList} variant="success">{loadMoreButtonText}</Button>
                 </Col>
             </Row>}
+            <ErrorAlert
+                onClose={handleOnCloseAlert}
+                show={hasError}
+                errorMessage="Apologies but we could not load new cats for you at this time! Miau!"
+            />
         </div>
     )
 }
