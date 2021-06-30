@@ -1,0 +1,1 @@
+export const DEFAULT_BREED_OPTION = 'Select breed';
